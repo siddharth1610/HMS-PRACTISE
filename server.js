@@ -12,7 +12,7 @@ config({
 connectdb()
 .then(() =>{
     app.listen(process.env.PORT || 4000, () => {
-        console.log(`Server is running at port : http://localhost${4000}`);
+        console.log(`Server is running at port : http://localhost:${4000}`);
     })
 } )
 .catch((err) =>{
