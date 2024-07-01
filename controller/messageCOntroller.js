@@ -13,3 +13,10 @@ export const sendMessage = asyncHandler(async(req,res,next) => {
     new Apiresponse(200,{},"Message send succesfully")
   );
 });
+
+export const getAllMessages = asyncHandler(async (req, res, next) => {
+  const messages = await Message.find();
+  res.status(200).json(
+    new Apiresponse(200,messages)
+  );
+});

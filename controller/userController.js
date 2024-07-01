@@ -3,6 +3,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/Apiresponse.js";
 import { User } from "../models/userSchema.js";
 import { generateToken } from "../utils/jwtTokens.js";
+import cloudinary from "cloudinary"
+import fs from "fs"
 
 export const patientRegister = asyncHandler(async(req,res)=>{
     const {firstName,lastName,email, phone,aadhar, dob, gender, password, role
@@ -98,7 +100,7 @@ export const addNewAdmin = asyncHandler(async (req, res, next) => {
   });
 
   // Logout function for dashboard admin
-export const logoutAdmin = asyncHandler(async (req, res, next) => {
+export const logoutAdmin = asyncHandler(async (req, res) => {
     res
       .status(201)
       .cookie("adminToken", "", {
@@ -111,7 +113,7 @@ export const logoutAdmin = asyncHandler(async (req, res, next) => {
       );
   });
   // Logout function for frontend patient
-  export const logoutPatient = asyncHandler(async (req, res, next) => {
+  export const logoutPatient = asyncHandler(async (req, res) => {
     res
       .status(201)
       .cookie("patientToken", "", {
@@ -125,3 +127,80 @@ export const logoutAdmin = asyncHandler(async (req, res, next) => {
         
       );
   });
+
+  export const addNewDoctor = asyncHandler(async(req,res) => {
+    if(!req.files || Object.keys(req.files).length === 0){
+      throw new ApiError("Doctor Avatar Required", 400) 
+    }
+
+  
+  const  {docAvatar } = req.files;
+  const allowedFormats = ["image/png", "image/jpeg", "image/webp"];
+  if (!allowedFormats.includes(docAvatar.mimetype)) {
+    (new ApiError("File Format Not Supported!", 400));
+  }
+  const {
+    firstName,
+    lastName,
+    email,
+    phone,
+    aadhar,
+    dob,
+    gender,
+    password,
+    doctorDepartment,
+  } = req.body;
+  if (
+    !firstName ||
+    !lastName ||
+    !email ||
+    !phone ||
+    !aadhar ||
+    !dob ||
+    !gender ||
+    !password ||
+    !doctorDepartment ||
+    !docAvatar
+  ) {
+    throw (new ApiError("Please Fill Full Form!", 400));
+  }
+  const isRegistered = await User.findOne({ email });
+  if (isRegistered) {
+    throw(
+      new ApiError("Doctor With This Email Already Exists!", 400)
+    );
+  }
+
+  const cloudinaryResponse = await cloudinary.uploader.upload(
+    docAvatar.tempFilePath
+  );
+  fs.unlinkSync(docAvatar.tempFilePath)
+  if (!cloudinaryResponse || cloudinaryResponse.error) {
+    console.error(
+      "Cloudinary Error:",
+      cloudinaryResponse.error || "Unknown Cloudinary error"
+    );
+    throw(
+      new ApiError("Failed To Upload Doctor Avatar To Cloudinary", 500)
+    );
+  }
+  const doctor = await User.create({
+    firstName,
+    lastName,
+    email,
+    phone,
+    aadhar,
+    dob,
+    gender,
+    password,
+    role: "Doctor",
+    doctorDepartment,
+    docAvatar: {
+      public_id: cloudinaryResponse.public_id,
+      url: cloudinaryResponse.secure_url,
+    },
+  });
+  res.status(200).json(
+    new ApiResponse(200,doctor,"New Doctor Registered")
+  );
+})

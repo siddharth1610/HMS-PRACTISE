@@ -9,16 +9,16 @@ cloudinary.v2.config({
 
 const uploadCloudinary = async (Avatar)=>{
     try{
-        if(!Avatar) return null
-        const response = await await cloudinary.uploader
-        .upload(Avatar, {
+      const response = await cloudinary.uploader
+        .upload(Avatar.tempFilePath, {
             resource_type: "auto"
         })
-        fs.unlinkSync(Avatar)
+        console.log(response);
+        fs.unlinkSync(Avatar.tempFilePath)
         return response;
 
     }catch(error){
-        fs.unlinkSync(Avatar)
+        fs.unlinkSync(Avatar.tempFilePath)
             return null;
         
     }

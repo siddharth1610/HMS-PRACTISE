@@ -22,8 +22,22 @@ class ApiError extends Error {
       }
       if (err.name === "CastError") {
         const message = `Invalid ${err.path}`,
-          err = new ErrorHandler(message, 400);
+          err = new ErrorHandler(message, 404);
       }
+
+      // if (err.code === 11000) {
+      //   const message = `Duplicate ${Object.keys(err.keyValue)} Entered`;
+      //   err = new ApiError(message, 400);
+      // } else if (err.name === "JsonWebTokenError") {
+      //   const message = "Json Web Token is invalid, Try again!";
+      //   err = new ApiError(message, 400);
+      // } else if (err.name === "TokenExpiredError") {
+      //   const message = "Json Web Token is expired, Try again!";
+      //   err = new ApiError(message, 400);
+      // } else if (err.name === "CastError") {
+      //   const message = `Invalid ${err.path}`;
+      //   err = new ApiError(message, 404);
+      // }
     
       const errorMessage = err.errors
         ? Object.values(err.errors)
